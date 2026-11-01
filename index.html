@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Londres 🇬🇧">
+<style>html,body{margin:0}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}[hidden]{display:none!important}</style>
+<title>Londres 6–8 novembre</title>
+<style>
+/* Layout: colonne mobile façon app iOS — en-tête coloré par jour (couleur d'une ligne du métro), cartes d'activités, barre d'onglets en bas */
+:root {
+  --bg: #F2F2F7;
+  --card: #FFFFFF;
+  --fg: #1C1C1E;
+  --muted: #6C6C72;
+  --hair: #E3E3E8;
+  --soft: #F2F2F7;
+  --ok: #1E8E3E;
+  --warn-bg: #FFF7DB;
+  --warn-fg: #6E5300;
+  --link-bg: #E6F0FD;
+  --link-fg: #1662C4;
+  --danger: #D92D20;
+  --danger-bg: #FDEEEE;
+  --nav-bg: rgba(242,242,247,0.92);
+  --shadow: 0 2px 8px rgba(0,0,0,0.07);
+  --ui: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #000000; --card: #1C1C1E; --fg: #F2F2F7; --muted: #A1A1A8; --hair: #2C2C2E; --soft: #2C2C2E;
+  --ok: #4CD964; --warn-bg: #2B2510; --warn-fg: #F2D27A; --link-bg: #13283F; --link-fg: #7DB4FF;
+  --danger: #FF6B5E; --danger-bg: #3A1715; --nav-bg: rgba(18,18,20,0.92); --shadow: none; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #000000; --card: #1C1C1E; --fg: #F2F2F7; --muted: #A1A1A8; --hair: #2C2C2E; --soft: #2C2C2E;
+  --ok: #4CD964; --warn-bg: #2B2510; --warn-fg: #F2D27A; --link-bg: #13283F; --link-fg: #7DB4FF;
+  --danger: #FF6B5E; --danger-bg: #3A1715; --nav-bg: rgba(18,18,20,0.92); --shadow: none; color-scheme: dark; }
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body { font-family: var(--ui); background: var(--bg); color: var(--fg); max-width: 480px; margin: 0 auto; overflow-x: hidden; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--day); }
+button { font-family: inherit; }
+:focus-visible { outline: 3px solid var(--day); outline-offset: 2px; }
+
+#header { background: var(--day); padding-top: 14px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); transition: background .35s ease; }
+.head-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 10px; }
+.eyebrow { color: rgba(255,255,255,.78); font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+#day-title { color: #fff; font-size: 22px; font-weight: 800; line-height: 1.2; margin: 2px 0 0; text-wrap: balance; }
+#day-line { display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 11px; font-weight: 700; color: #fff; background: rgba(0,0,0,.18); border-radius: 20px; padding: 3px 9px 3px 4px; }
+.roundel { width: 16px; height: 16px; border-radius: 50%; border: 3px solid #fff; position: relative; }
+.roundel::after { content: ""; position: absolute; left: -6px; right: -6px; top: 50%; height: 4px; margin-top: -2px; background: #fff; }
+.counter { text-align: right; flex-shrink: 0; }
+.counter .lbl { color: rgba(255,255,255,.8); font-size: 11px; }
+.counter .num { color: #fff; font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.counter .tot { font-size: 13px; opacity: .7; font-weight: 500; }
+.edit-btn { background: rgba(255,255,255,.2); border: none; border-radius: 10px; padding: 6px 10px; font-size: 12px; font-weight: 700; color: #fff; cursor: pointer; margin-left: 6px; }
+.edit-btn[aria-pressed="true"] { background: #fff; color: var(--day); }
+.bar { background: rgba(255,255,255,.25); border-radius: 4px; height: 4px; margin-bottom: 14px; overflow: hidden; }
+.bar > div { background: #fff; height: 100%; border-radius: 4px; transition: width .5s ease; }
+#tabs { display: flex; gap: 5px; overflow-x: auto; scrollbar-width: none; }
+#tabs::-webkit-scrollbar { display: none; }
+.tab { flex-shrink: 0; border: none; border-radius: 10px 10px 0 0; padding: 8px 13px; font-size: 11px; font-weight: 800; letter-spacing: .04em; color: #fff; background: rgba(255,255,255,.18); cursor: pointer; }
+.tab[aria-selected="true"] { background: var(--bg); color: var(--fg); }
+
+#tip { background: var(--warn-bg); color: var(--warn-fg); font-size: 12.5px; line-height: 1.4; min-height: 40px; display: flex; align-items: center; padding-block: 9px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+main { padding-block: 14px 130px; padding-left: max(14px, env(safe-area-inset-left, 0px)); padding-right: max(14px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 10px; }
+
+.slot { font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: .07em; text-transform: uppercase; margin: 6px 4px 0; }
+.item { background: var(--card); border-radius: 16px; border: 2px solid transparent; box-shadow: var(--shadow); transition: border-color .2s, opacity .2s; }
+.item.done { border-color: var(--day); opacity: .78; }
+.item.custom { border-color: #E3B505; }
+.item-row { display: flex; align-items: center; padding: 12px; gap: 11px; cursor: pointer; }
+.check { flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; border: 2px solid #C7C7CC; background: transparent; display: grid; place-items: center; cursor: pointer; color: #fff; font-size: 14px; font-weight: 800; }
+.check[aria-checked="true"] { background: var(--day); border-color: var(--day); }
+.icon { width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0; background: color-mix(in srgb, var(--day) 14%, transparent); display: grid; place-items: center; font-size: 20px; }
+.txt { flex: 1; min-width: 0; }
+.title { font-size: 15px; font-weight: 650; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.done .title { text-decoration: line-through; }
+.meta { display: flex; flex-wrap: wrap; gap: 4px 8px; margin-top: 2px; font-size: 11px; font-weight: 600; }
+.meta .when { color: var(--muted); font-variant-numeric: tabular-nums; }
+.meta .price { color: var(--ok); }
+.meta .flag { color: var(--danger); }
+.meta .mine { color: #B48A00; }
+.chev { color: #B0B0B6; font-size: 18px; transition: transform .2s; flex-shrink: 0; }
+.chev.open { transform: rotate(90deg); }
+.edit-tools { display: flex; gap: 4px; flex-shrink: 0; }
+.mini { border: none; border-radius: 9px; padding: 6px 9px; font-size: 13px; cursor: pointer; background: var(--soft); color: var(--fg); }
+.mini.del { background: var(--danger-bg); color: var(--danger); }
+.mini:disabled { opacity: .35; }
+
+.more { padding: 0 14px 14px; border-top: 1px solid var(--hair); }
+.desc { padding-top: 10px; font-size: 13.5px; line-height: 1.55; }
+.friend { margin-top: 10px; font-size: 12.5px; line-height: 1.5; background: color-mix(in srgb, var(--day) 8%, var(--card)); border-left: 3px solid var(--day); border-radius: 4px 10px 10px 4px; padding: 8px 10px; }
+.friend b { display: block; font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin-bottom: 2px; }
+.sub { font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; margin: 12px 0 6px; }
+.route { display: flex; align-items: flex-start; gap: 10px; background: var(--soft); border-radius: 10px; padding: 9px 11px; margin-bottom: 6px; }
+.line-pill { flex-shrink: 0; min-width: 74px; text-align: center; border-radius: 6px; padding: 3px 6px; font-size: 10.5px; font-weight: 800; letter-spacing: .02em; color: #fff; }
+.route-info { flex: 1; min-width: 0; }
+.route-detail { font-size: 12.5px; line-height: 1.4; }
+.route-foot { font-size: 11px; color: var(--muted); margin-top: 2px; font-variant-numeric: tabular-nums; }
+.links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.link-btn { display: inline-flex; align-items: center; gap: 5px; background: var(--link-bg); color: var(--link-fg); border-radius: 8px; padding: 7px 12px; font-size: 12px; font-weight: 650; text-decoration: none; }
+
+.add-btn { width: 100%; padding: 14px; border-radius: 16px; background: transparent; border: 2px dashed #C2C2C8; font-size: 14px; font-weight: 650; color: var(--muted); cursor: pointer; }
+.restore { background: none; border: none; color: var(--link-fg); font-size: 13px; font-weight: 600; cursor: pointer; padding: 6px; }
+.done-banner { text-align: center; padding: 14px 0 4px; }
+.done-banner .big { font-size: 34px; }
+.done-banner .t { font-weight: 800; margin-top: 6px; }
+.done-banner .s { font-size: 13px; color: var(--muted); margin-top: 3px; }
+
+/* Bonnes adresses */
+.spot-head { background: var(--day); color: #fff; border-radius: 18px; padding: 16px 18px; }
+.spot-head h2 { margin: 0; font-size: 20px; }
+.spot-head p { margin: 4px 0 0; font-size: 12.5px; opacity: .85; }
+.spot { background: var(--card); border-radius: 16px; padding: 14px; box-shadow: var(--shadow); }
+.spot-top { display: flex; gap: 12px; align-items: flex-start; }
+.spot-name { font-size: 15px; font-weight: 700; }
+.spot-zone { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+.spot-desc { font-size: 12.5px; line-height: 1.5; margin: 8px 0; }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.tag { font-size: 11px; font-weight: 600; background: var(--soft); color: var(--muted); border-radius: 6px; padding: 3px 8px; }
+.ask { background: var(--card); border-radius: 16px; padding: 16px; box-shadow: var(--shadow); }
+.ask h3 { margin: 0 0 4px; font-size: 15px; }
+.ask p { margin: 0 0 12px; font-size: 12.5px; color: var(--muted); }
+
+/* Sheets */
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: flex; align-items: flex-end; justify-content: center; z-index: 50; }
+.sheet { background: var(--card); border-radius: 22px 22px 0 0; width: 100%; max-width: 480px; max-height: 84vh; overflow-y: auto; padding-top: 18px; padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 22px); padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+.handle { width: 36px; height: 4px; background: var(--hair); border-radius: 2px; margin: 0 auto 16px; }
+.sheet h3 { margin: 0 0 4px; font-size: 17px; }
+.sheet .hint { font-size: 13px; color: var(--muted); margin: 0 0 14px; }
+.seg { display: flex; background: var(--soft); border-radius: 10px; padding: 3px; margin-bottom: 14px; }
+.seg button { flex: 1; border: none; background: transparent; padding: 8px; border-radius: 8px; font-size: 13px; font-weight: 650; color: var(--muted); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--card); color: var(--fg); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+.field { width: 100%; padding: 13px 14px; border-radius: 12px; border: 2px solid var(--hair); font-size: 15px; font-family: inherit; background: var(--card); color: var(--fg); margin-bottom: 10px; }
+.field:focus { border-color: var(--day); outline: none; }
+textarea.field { resize: vertical; min-height: 72px; }
+.primary { width: 100%; padding: 14px; border-radius: 14px; background: var(--day); color: #fff; border: none; font-size: 16px; font-weight: 700; cursor: pointer; }
+.primary:disabled { opacity: .5; }
+.secondary { width: 100%; padding: 12px; border-radius: 14px; background: transparent; border: 2px solid var(--hair); font-size: 14px; font-weight: 600; color: var(--muted); cursor: pointer; margin-top: 8px; }
+.loading { text-align: center; padding: 24px 0; color: var(--muted); font-size: 14px; }
+.spin { display: inline-block; font-size: 30px; animation: spin 1.2s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.preview { background: var(--soft); border-radius: 14px; padding: 14px; margin-bottom: 12px; }
+.err { background: var(--danger-bg); color: var(--danger); border-radius: 12px; padding: 12px; font-size: 13px; line-height: 1.5; margin-bottom: 10px; }
+
+#nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: var(--nav-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid var(--hair); display: flex; justify-content: space-around; padding-top: 8px; padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 8px); padding-left: max(8px, env(safe-area-inset-left, 0px)); padding-right: max(8px, env(safe-area-inset-right, 0px)); z-index: 40; }
+.nav-btn { display: flex; flex-direction: column; align-items: center; gap: 2px; background: none; border: none; cursor: pointer; padding: 3px 8px; color: var(--muted); font-size: 10px; font-weight: 600; }
+.nav-btn .ni { font-size: 21px; }
+.nav-btn[aria-current="true"] { color: var(--navc); }
+/* Dépenses */
+.sync { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 650; color: var(--muted); }
+.sync i { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+.sync.on i { background: var(--ok); }
+.panel { background: var(--card); border-radius: 16px; padding: 14px; box-shadow: var(--shadow); }
+.panel h3 { margin: 0 0 10px; font-size: 15px; }
+.total { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.total .big { font-size: 28px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.total .small { font-size: 12px; color: var(--muted); text-align: right; }
+.people { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
+.person { background: var(--soft); border-radius: 12px; padding: 10px 8px; text-align: center; min-width: 0; }
+.avatar { width: 34px; height: 34px; border-radius: 50%; margin: 0 auto 4px; display: grid; place-items: center; color: #fff; font-weight: 800; font-size: 14px; }
+.person .nm { font-size: 13px; font-weight: 700; }
+.person .pd { font-size: 11px; color: var(--muted); margin-top: 2px; font-variant-numeric: tabular-nums; }
+.person .net { font-size: 13px; font-weight: 800; margin-top: 4px; font-variant-numeric: tabular-nums; }
+.pos { color: var(--ok); } .neg { color: var(--danger); }
+.transfer { display: flex; align-items: center; gap: 8px; padding: 9px 0; border-top: 1px solid var(--hair); font-size: 14px; }
+.transfer:first-of-type { border-top: none; }
+.transfer .amt { margin-left: auto; font-weight: 800; font-variant-numeric: tabular-nums; }
+.exp { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid var(--hair); }
+.exp:first-of-type { border-top: none; }
+.exp .txt .title { font-size: 14px; }
+.exp .sum { text-align: right; font-variant-numeric: tabular-nums; flex-shrink: 0; }
+.exp .sum b { display: block; font-size: 14px; }
+.exp .sum span { font-size: 11px; color: var(--muted); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.chip { border: 2px solid var(--hair); background: var(--card); color: var(--fg); border-radius: 20px; padding: 6px 12px; font-size: 13px; font-weight: 650; cursor: pointer; }
+.chip[aria-pressed="true"] { border-color: var(--day); background: color-mix(in srgb, var(--day) 14%, var(--card)); }
+.row2 { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+.row2 .field { margin-bottom: 10px; }
+.rate { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted); margin-top: 10px; flex-wrap: wrap; }
+.rate input { width: 76px; padding: 6px 8px; border-radius: 8px; border: 2px solid var(--hair); background: var(--card); color: var(--fg); font-size: 13px; font-family: inherit; }
+.empty { text-align: center; color: var(--muted); font-size: 13px; padding: 12px 0 4px; line-height: 1.5; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+
+
+<div id="header">
+  <div class="head-top">
+    <div>
+      <div class="eyebrow">🇬🇧 Londres · 6–8 novembre 2026</div>
+      <h1 id="day-title"></h1>
+      <div id="day-line"><span class="roundel"></span><span id="day-line-name"></span></div>
+    </div>
+    <div class="counter">
+      <div class="lbl">activités</div>
+      <div style="display:flex;align-items:center;justify-content:flex-end">
+        <span><span class="num" id="n-done">0</span><span class="tot" id="n-total">/0</span></span>
+        <button class="edit-btn" id="edit-btn" aria-pressed="false" aria-label="Modifier l'ordre">✏️</button>
+      </div>
+    </div>
+  </div>
+  <div class="bar"><div id="bar" style="width:0%"></div></div>
+  <div id="tabs" role="tablist"></div>
+</div>
+<div id="tip" aria-live="polite"></div>
+<main id="main"></main>
+<nav id="nav"></nav>
+<div id="sheet-root"></div>
+
+<script>
+// ── Lignes de métro (couleurs officielles TfL) ─────────────────────────
+const LINES = {
+  piccadilly: { name: "Piccadilly", color: "#1C3F94" },
+  central:    { name: "Central",    color: "#DC241F" },
+  northern:   { name: "Northern",   color: "#1A1A1A" },
+  circle:     { name: "Circle",     color: "#FFD300", ink: "#1A1A1A" },
+  district:   { name: "District",   color: "#00782A" },
+  bakerloo:   { name: "Bakerloo",   color: "#B36305" },
+  jubilee:    { name: "Jubilee",    color: "#838D93" },
+  elizabeth:  { name: "Elizabeth",  color: "#6950A1" },
+  walk:       { name: "À pied",     color: "#5E6670" },
+  taxi:       { name: "Taxi / Uber", color: "#2E2E33" },
+  bus:        { name: "Bus",        color: "#C8102E" },
+  train:      { name: "Eurostar",   color: "#13284B" },
+  dlr:        { name: "DLR",        color: "#00A4A7" },
+};
+
+const PEOPLE = [
+  { name: "Manu",    color: "#1C3F94" },
+  { name: "Marine",  color: "#C2185B" },
+  { name: "Mathieu", color: "#00782A" },
+];
+
+const HOTEL = "Covent Garden, London"; // Covent & Soho Stays — remplacer par l'adresse exacte si besoin
+
+const DAYS = [
+  {
+    id: "ven", label: "VEN 6", title: "Arrivée, Camden & Covent Garden", line: "piccadilly",
+    items: [
+      { id: "v1", slot: "Matin", icon: "🚄", title: "Eurostar → St Pancras", when: "Arrivée",
+        desc: "Départ de Paris-Nord, arrivée à London St Pancras International. Le contrôle des passeports britannique se fait côté français, avant l'embarquement : rien à faire en arrivant.",
+        dest: "St Pancras International, London",
+        routes: [
+          { line: "piccadilly", detail: "King's Cross St Pancras → Covent Garden, direct (direction Heathrow / Uxbridge)", time: "~10 min", price: "Tarif métro" },
+          { line: "taxi", detail: "St Pancras → hôtel, pratique avec les valises", time: "~20 min", price: "≈ 15–25 £" },
+        ] },
+      { id: "v2", icon: "🏨", title: "Dépôt des bagages – Covent & Soho Stays", when: "Midi",
+        desc: "Déposer les valises avant de repartir. Vérifiez l'heure d'arrivée et les instructions d'accès dans le lien de réservation de l'hôtel.",
+        dest: HOTEL, routes: [] },
+      { id: "v3", slot: "Après-midi", icon: "🎸", title: "Camden Town & Camden Market", when: "Demi-journée +", price: "Entrée libre",
+        desc: "Le quartier rock, le long du Regent's Canal. Marché immense, Stables Market avec ses galeries souterraines sous les anciennes écuries, et des dizaines de stands de street food du monde entier pour déjeuner sur place.",
+        friend: "Un incontournable, mon quartier préféré ! La galerie souterraine est à ne pas manquer.",
+        dest: "Camden Market, London",
+        routes: [
+          { line: "northern", detail: "Leicester Square ou Tottenham Court Road → Camden Town, direct (direction Edgware ou High Barnet)", time: "~10 min", price: "Tarif métro" },
+          { line: "northern", detail: "Depuis King's Cross St Pancras → Camden Town, direct (le conseil d'origine, pratique si vous y allez valises déposées en consigne)", time: "~5 min", price: "Tarif métro" },
+        ] },
+      { id: "v4", slot: "Soirée", icon: "🎭", title: "Covent Garden", when: "Fin d'après-midi", price: "Gratuit",
+        desc: "La halle du marché, l'Apple Market, les artistes de rue sur la Piazza et les décorations de Noël qui s'installent début novembre. Petit détour par Seven Dials et Neal's Yard.",
+        friend: "Il y a un marché, et le bar dansant Road House était top… du moins à mon époque 🤣",
+        note: "Le Road House a fermé définitivement. Pour danser, voir l'onglet Adresses.",
+        dest: "Covent Garden Market, London",
+        routes: [ { line: "walk", detail: "Depuis l'hôtel, quartier Covent Garden / Soho", time: "5–10 min", price: "Gratuit" } ] },
+      { id: "v5", icon: "🥟", title: "Dîner à Soho / Chinatown", when: "Soir",
+        desc: "Chinatown (Gerrard Street) pour les dim sum et canards laqués, ou Soho pour l'embarras du choix. Puis un verre dans un pub, voir l'onglet Adresses.",
+        dest: "Chinatown, London",
+        routes: [ { line: "walk", detail: "Covent Garden → Leicester Square → Gerrard Street", time: "~10 min", price: "Gratuit" } ] },
+    ]
+  },
+  {
+    id: "sam", label: "SAM 7", title: "Notting Hill, Hyde Park & shopping", line: "central",
+    items: [
+      { id: "s1", slot: "Matin", icon: "🏡", title: "Notting Hill & Portobello Market", when: "9 h – 11 h 30", price: "Gratuit", flag: "Samedi = grand marché",
+        desc: "Maisons colorées et antiquaires. Le samedi est le jour du grand marché (ouvert vers 9 h en automne) : arriver tôt avant la foule. Les façades les plus photogéniques sont sur Portobello Road et dans les rues autour (Lancaster Road, Elgin Crescent).",
+        friend: "Flâner à Notting Hill et ses maisons colorées ! Le marché Portobello est superbe !",
+        dest: "Portobello Road Market, London",
+        routes: [
+          { line: "central", detail: "Tottenham Court Road → Notting Hill Gate, direct (direction West Ruislip / Ealing Broadway)", time: "~15 min", price: "Tarif métro" },
+          { line: "piccadilly", detail: "Variante d'origine : Covent Garden → Holborn, puis Central line → Notting Hill Gate", time: "~20 min", price: "Tarif métro" },
+        ] },
+      { id: "s2", icon: "🌳", title: "Kensington Gardens → Hyde Park", when: "11 h 30", price: "Gratuit",
+        desc: "Descendre à pied de Notting Hill Gate vers Kensington Palace, puis traverser le parc le long du lac (Serpentine) jusqu'à l'angle est de Hyde Park.",
+        dest: "Hyde Park, London",
+        routes: [ { line: "walk", detail: "Notting Hill Gate → Kensington Gardens → Serpentine → Marble Arch", time: "~40 min de balade", price: "Gratuit" } ] },
+      { id: "s3", icon: "🍽️", title: "Pause déjeuner", when: "13 h",
+        desc: "Pause conseillée avant le shopping. Côté Marble Arch / St Christopher's Place (petite rue piétonne derrière Oxford Street) il y a beaucoup de choix.",
+        dest: "St Christopher's Place, London", routes: [] },
+      { id: "s4", slot: "Après-midi", icon: "🛍️", title: "Marble Arch → Oxford St → Piccadilly", when: "14 h – 17 h",
+        desc: "Marble Arch, Oxford Street (Selfridges), Bond Street, Oxford Circus, puis Regent Street jusqu'à Piccadilly Circus. Les illuminations de Noël sont installées en novembre, à vérifier selon la date d'allumage. Hamleys (jouets) est sur Regent Street, Liberty juste derrière.",
+        friend: "Vous y trouverez tous les magasins ! La carte bleue va chauffer !",
+        dest: "Oxford Circus, London",
+        routes: [ { line: "walk", detail: "Marble Arch → Oxford Circus → Regent Street → Piccadilly Circus", time: "~35 min sans arrêts", price: "Gratuit" } ] },
+      { id: "s5", slot: "Soirée", icon: "🕰️", title: "Westminster de nuit : Big Ben, London Eye, Buckingham", when: "17 h 30", price: "London Eye payant",
+        desc: "Trafalgar Square, Whitehall, Big Ben et le Parlement, puis Westminster Bridge face au London Eye illuminé. Buckingham Palace au bout du Mall. On le fait samedi soir car dimanche matin le secteur est réservé à la cérémonie du Souvenir.",
+        friend: "En descendant à Westminster, vous verrez Big Ben, le London Eye, Buckingham Palace et finirez par Hyde Park.",
+        dest: "Big Ben, London",
+        routes: [
+          { line: "walk", detail: "Piccadilly Circus → Trafalgar Square → Whitehall → Big Ben", time: "~20 min", price: "Gratuit" },
+          { line: "bakerloo", detail: "Piccadilly Circus → Embankment, puis 5 min à pied", time: "~10 min", price: "Tarif métro" },
+        ] },
+      { id: "s6", icon: "🍺", title: "Pub du samedi soir", when: "Soir",
+        desc: "Retour vers Covent Garden et Soho pour un pub ou un bar dansant. Idées dans l'onglet Adresses.",
+        dest: HOTEL,
+        routes: [ { line: "walk", detail: "Westminster → Strand → Covent Garden", time: "~20 min", price: "Gratuit" } ] },
+    ]
+  },
+  {
+    id: "dim", label: "DIM 8", title: "La City, Tower Bridge & retour", line: "district",
+    items: [
+      { id: "d0", slot: "Matin", icon: "🕯️", title: "Remembrance Sunday (facultatif)", when: "11 h", flag: "Whitehall bondé",
+        desc: "Cérémonie nationale au Cénotaphe de Whitehall : deux minutes de silence à 11 h, saluées au canon. Le public accède à Whitehall dès 8 h, sans billet, avec contrôles de sécurité (éviter les gros sacs). Si vous n'y allez pas, évitez Westminster ce matin-là.",
+        dest: "The Cenotaph, Whitehall, London", routes: [] },
+      { id: "d1", icon: "⛪", title: "St Paul's Cathedral", when: "10 h", price: "Extérieur gratuit",
+        desc: "Le dôme se voit très bien depuis le parvis et depuis le Millennium Bridge, juste derrière. Le dimanche la cathédrale n'est ouverte que pour les offices, pas pour la visite.",
+        friend: "Depuis King's Cross : Piccadilly line jusqu'à Holborn, puis Central line jusqu'à St Paul's.",
+        dest: "St Paul's Cathedral, London",
+        routes: [
+          { line: "piccadilly", detail: "Covent Garden → Holborn (1 station)", time: "~3 min", price: "Tarif métro" },
+          { line: "central", detail: "Holborn → St Paul's (direction Epping / Hainault)", time: "~5 min", price: "Tarif métro" },
+          { line: "walk", detail: "Covent Garden → Strand → Fleet Street → St Paul's", time: "~25 min", price: "Gratuit" },
+        ] },
+      { id: "d2", icon: "🥒", title: "Bank, Gherkin & Leadenhall", when: "10 h 45", price: "Gratuit",
+        desc: "Marcher jusqu'à Bank (Banque d'Angleterre, Royal Exchange), puis le Gherkin, l'immeuble en forme de cornichon au 30 St Mary Axe. Passage par Leadenhall Market, la halle victorienne couverte. On peut pousser jusqu'à Liverpool Street.",
+        friend: "Marcher jusqu'à Bank, et jusqu'à Liverpool Street si vous voulez.",
+        dest: "The Gherkin, 30 St Mary Axe, London",
+        routes: [ { line: "walk", detail: "St Paul's → Cheapside → Bank → Leadenhall Market → Gherkin", time: "~20 min", price: "Gratuit" } ] },
+      { id: "d3", icon: "🌉", title: "Tower of London & Tower Bridge", when: "11 h 45", price: "Extérieur gratuit",
+        desc: "La forteresse de la Tour de Londres, puis le célèbre pont bleu. Traverser à pied pour la vue sur la Tamise.",
+        friend: "De Liverpool Street, prendre la Circle line jusqu'à Tower Hill pour admirer le super pont bleu !",
+        dest: "Tower Bridge, London",
+        routes: [
+          { line: "circle", detail: "Liverpool Street → Tower Hill (via Aldgate)", time: "~5 min", price: "Tarif métro" },
+          { line: "walk", detail: "Gherkin → Aldgate → Tower Hill", time: "~12 min", price: "Gratuit" },
+        ] },
+      { id: "d4", icon: "🏙️", title: "The Shard", when: "12 h 30", price: "Vue payante, réserver",
+        desc: "Le plus haut gratte-ciel du Royaume-Uni, juste à côté de London Bridge. Belvédère payant tout en haut (réserver en ligne). Alternative gratuite : le Sky Garden, sur réservation.",
+        friend: "Vous pouvez aussi visiter le Shard. Il faudra vous rendre à l'arrêt London Bridge.",
+        dest: "The Shard, London",
+        routes: [
+          { line: "walk", detail: "Tower Bridge → rive sud → Hay's Galleria → London Bridge", time: "~15 min", price: "Gratuit" },
+          { line: "jubilee", detail: "Ou en métro : arrêt London Bridge (Jubilee / Northern)", time: "", price: "Tarif métro" },
+        ] },
+      { id: "d5", slot: "Après-midi", icon: "🍖", title: "Sunday roast", when: "13 h 30",
+        desc: "La tradition du dimanche : rosbif, Yorkshire pudding et gravy dans un pub. Réserver si possible, les pubs sont pleins le dimanche midi.",
+        dest: "Sunday roast pub near London Bridge", routes: [] },
+      { id: "d6", icon: "🚄", title: "Bagages → St Pancras", when: "Selon le train",
+        desc: "Récupérer les valises à l'hôtel puis rejoindre St Pancras. Prévoir large : le contrôle de sécurité et des passeports se fait avant l'embarquement, Eurostar conseille d'arriver bien en avance.",
+        dest: "St Pancras International, London",
+        routes: [
+          { line: "piccadilly", detail: "Covent Garden → King's Cross St Pancras, direct (direction Cockfosters)", time: "~10 min", price: "Tarif métro" },
+          { line: "taxi", detail: "Hôtel → St Pancras", time: "~20 min", price: "≈ 15–25 £" },
+        ] },
+    ]
+  },
+];
+
+const SPOTS = [
+  { icon: "🍻", name: "Lamb & Flag", zone: "Covent Garden · à pied", desc: "Pub historique dans une ruelle, l'un des plus anciens du quartier. Bondé et convivial, on boit souvent debout dehors.", tags: ["Pub", "Près de l'hôtel"], q: "Lamb and Flag, Rose Street, London" },
+  { icon: "🍺", name: "The Harp", zone: "Covent Garden · Chandos Place", desc: "Petit pub réputé pour ses bières anglaises (real ales). Idéal pour goûter une vraie pinte de cask.", tags: ["Pub", "Bières"], q: "The Harp, Chandos Place, London" },
+  { icon: "🌸", name: "Churchill Arms", zone: "Kensington · près de Notting Hill Gate", desc: "La façade couverte de fleurs, très photographiée, et une cuisine thaï à l'intérieur. Parfait pour le déjeuner du samedi.", tags: ["Pub", "Samedi midi"], q: "Churchill Arms, Kensington Church Street, London" },
+  { icon: "🥘", name: "Dishoom Covent Garden", zone: "Covent Garden", desc: "Cuisine de Bombay dans un décor de café indien. Très populaire : file d'attente fréquente, venir tôt.", tags: ["Restaurant", "File d'attente"], q: "Dishoom Covent Garden, London" },
+  { icon: "🥩", name: "Flat Iron", zone: "Soho", desc: "Steak à prix doux, service rapide. Bonne option pour un dîner à quatre sans se ruiner.", tags: ["Restaurant", "Budget"], q: "Flat Iron Soho, London" },
+  { icon: "🧺", name: "Borough Market", zone: "London Bridge · au pied du Shard", desc: "Le grand marché gourmand de Londres, à deux pas du Shard. Vérifier les horaires du dimanche avant d'y aller.", tags: ["Marché", "Street food"], q: "Borough Market, London" },
+  { icon: "🌿", name: "Sky Garden", zone: "City · Fenchurch Street", desc: "Jardin suspendu en haut d'un gratte-ciel, vue à 360°. Gratuit mais réservation en ligne obligatoire, les créneaux partent vite.", tags: ["Gratuit", "Réserver"], q: "Sky Garden, 20 Fenchurch Street, London" },
+  { icon: "💃", name: "Road House (fermé)", zone: "Covent Garden · The Piazza", desc: "Le bar dansant de l'époque a fermé définitivement. Pour danser, demander une idée à Claude ci-dessous.", tags: ["Fermé"], q: "35 The Piazza, Covent Garden, London" },
+];
+
+const TIPS = [
+  "💳 Payez le métro par carte sans contact : plafond de 8,90 £ par jour en zones 1–2, une carte par personne",
+  "🚇 Ne passez pas deux personnes avec la même carte : le plafond ne marche que par carte",
+  "🚌 Bus : 1,75 £ le trajet, 2e bus gratuit dans l'heure",
+  "🛍️ Samedi = grand marché de Portobello, arrivez tôt",
+  "🕯️ Dimanche 8 = Remembrance Sunday : Whitehall réservé à la cérémonie le matin",
+  "📱 Citymapper ou TfL Go pour les trajets en temps réel",
+  "🔌 Prises anglaises (type G) : pensez aux adaptateurs",
+  "🍽️ Au restaurant, le service (12,5 %) est souvent déjà sur l'addition",
+  "➕ Le bouton + ajoute une activité, à la main ou avec Claude",
+];
+
+// ── Stockage local (chaque téléphone garde ses coches) ─────────────────
+const store = {
+  get(k, d) { try { const v = localStorage.getItem("ldn26-" + k); return v ? JSON.parse(v) : d; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem("ldn26-" + k, JSON.stringify(v)); } catch {} },
+};
+let done = store.get("done", {});
+let custom = store.get("custom", {});
+let deleted = store.get("deleted", {});
+let orders = store.get("orders", {});
+let view = store.get("view", "ven");
+let editMode = false;
+let expanded = null;
+let tipIdx = 0;
+let sample = null;
+
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const dayOf = (id) => DAYS.find(d => d.id === id);
+const lineColor = (key) => (LINES[key] || LINES.walk).color;
+
+function items(dayId) {
+  const d = dayOf(dayId);
+  const del = deleted[dayId] || [];
+  const all = [...d.items.filter(i => !del.includes(i.id)), ...(custom[dayId] || [])];
+  const ord = orders[dayId];
+  if (!ord) return all;
+  const sorted = ord.map(id => all.find(i => i.id === id)).filter(Boolean);
+  all.forEach(i => { if (!sorted.includes(i)) sorted.push(i); });
+  return sorted;
+}
+function mapsSearch(q) { return "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(q); }
+function mapsDir(q) { return "https://www.google.com/maps/dir/?api=1&travelmode=transit&destination=" + encodeURIComponent(q); }
+
+function setDayColor() {
+  const key = view === "adr" ? "elizabeth" : view === "dep" ? "dlr" : dayOf(view).line;
+  document.documentElement.style.setProperty("--day", lineColor(key));
+  document.documentElement.style.setProperty("--navc", lineColor(key) === "#1A1A1A" ? "var(--fg)" : lineColor(key));
+}
+
+function render() {
+  setDayColor();
+  const all = DAYS.flatMap(d => items(d.id));
+  const nd = all.filter(i => done[i.id]).length;
+  $("#n-done").textContent = nd;
+  $("#n-total").textContent = "/" + all.length;
+  $("#bar").style.width = all.length ? (nd / all.length * 100) + "%" : "0%";
+  $("#edit-btn").hidden = view === "adr" || view === "dep";
+  $("#edit-btn").setAttribute("aria-pressed", editMode);
+
+  const tabs = [...DAYS.map(d => ({ id: d.id, label: d.label })), { id: "dep", label: "💷 DÉPENSES" }, { id: "adr", label: "📍 ADRESSES" }];
+  $("#tabs").innerHTML = tabs.map(t => `<button class="tab" role="tab" aria-selected="${t.id === view}" data-go="${t.id}">${t.label}</button>`).join("");
+  $("#nav").innerHTML = [
+    ...DAYS.map(d => ({ id: d.id, i: { ven: "🚄", sam: "🛍️", dim: "🌉" }[d.id], l: d.label.split(" ").map((w, k) => k ? w : w[0] + w.slice(1).toLowerCase()).join(" ") })),
+    { id: "dep", i: "💷", l: "Dépenses" },
+    { id: "adr", i: "📍", l: "Adresses" },
+  ].map(n => `<button class="nav-btn" data-go="${n.id}" aria-current="${n.id === view}"><span class="ni">${n.i}</span>${n.l}</button>`).join("");
+
+  if (view === "adr") return renderSpots();
+  if (view === "dep") return renderExpenses();
+  const d = dayOf(view);
+  $("#day-title").textContent = d.title;
+  $("#day-line-name").textContent = "Ligne du jour : " + LINES[d.line].name;
+  $("#day-line").hidden = false;
+
+  const list = items(view);
+  let html = "";
+  list.forEach((it, idx) => {
+    if (it.slot && !editMode) html += `<div class="slot">${esc(it.slot)}</div>`;
+    const isOpen = expanded === it.id && !editMode;
+    const meta = [
+      it.when ? `<span class="when">${esc(it.when)}</span>` : "",
+      it.price ? `<span class="price">${esc(it.price)}</span>` : "",
+      it.flag ? `<span class="flag">${esc(it.flag)}</span>` : "",
+      it.custom ? `<span class="mine">Ajouté par vous</span>` : "",
+    ].join("");
+    html += `<article class="item${done[it.id] ? " done" : ""}${it.custom ? " custom" : ""}">
+      <div class="item-row" data-toggle="${it.id}">
+        ${editMode ? "" : `<button class="check" role="checkbox" aria-checked="${!!done[it.id]}" aria-label="Fait : ${esc(it.title)}" data-check="${it.id}">${done[it.id] ? "✓" : ""}</button>`}
+        <div class="icon">${esc(it.icon || "📍")}</div>
+        <div class="txt"><div class="title">${esc(it.title)}</div><div class="meta">${meta}</div></div>
+        ${editMode
+          ? `<div class="edit-tools">
+              <button class="mini" data-move="${it.id}" data-dir="-1" aria-label="Monter" ${idx === 0 ? "disabled" : ""}>↑</button>
+              <button class="mini" data-move="${it.id}" data-dir="1" aria-label="Descendre" ${idx === list.length - 1 ? "disabled" : ""}>↓</button>
+              <button class="mini del" data-del="${it.id}" aria-label="Supprimer">✕</button></div>`
+          : `<span class="chev${isOpen ? " open" : ""}">›</span>`}
+      </div>
+      ${isOpen ? renderMore(it) : ""}
+    </article>`;
+  });
+  const allDone = list.length && list.every(i => done[i.id]);
+  if (allDone && !editMode) html += `<div class="done-banner"><div class="big">🎉</div><div class="t">Journée bouclée !</div><div class="s">Toutes les activités du ${esc(d.label.toLowerCase())} sont cochées.</div></div>`;
+  html += `<button class="add-btn" id="add-btn">＋ Ajouter une activité</button>`;
+  if ((deleted[view] || []).length || orders[view]) html += `<button class="restore" id="restore">Rétablir le programme d'origine de la journée</button>`;
+  $("#main").innerHTML = html;
+}
+
+function renderMore(it) {
+  const routes = (it.routes || []).map(r => {
+    const L = LINES[r.line] || LINES.walk;
+    return `<div class="route"><span class="line-pill" style="background:${L.color};color:${L.ink || "#fff"}">${esc(L.name)}</span>
+      <div class="route-info"><div class="route-detail">${esc(r.detail)}</div>
+      <div class="route-foot">${[r.time, r.price].filter(Boolean).map(esc).join(" · ")}</div></div></div>`;
+  }).join("");
+  return `<div class="more">
+    <div class="desc">${esc(it.desc)}</div>
+    ${it.note ? `<div class="err" style="margin:10px 0 0">${esc(it.note)}</div>` : ""}
+    ${it.friend ? `<div class="friend"><b>Le conseil d'origine</b>${esc(it.friend)}</div>` : ""}
+    ${routes ? `<div class="sub">Comment y aller</div>${routes}` : ""}
+    ${it.dest ? `<div class="links"><a class="link-btn" href="${mapsDir(it.dest)}" target="_blank" rel="noopener">🧭 Itinéraire</a><a class="link-btn" href="${mapsSearch(it.dest)}" target="_blank" rel="noopener">📍 Voir sur Maps</a></div>` : ""}
+  </div>`;
+}
+
+function renderSpots() {
+  $("#day-title").textContent = "Bonnes adresses";
+  $("#day-line").hidden = true;
+  $("#main").innerHTML = `
+    <div class="spot-head"><h2>Pubs, restos & sorties</h2><p>Autour de l'hôtel et sur le parcours des trois jours.</p></div>
+    ${SPOTS.map(s => `<div class="spot"><div class="spot-top"><div class="icon">${s.icon}</div><div class="txt">
+      <div class="spot-name">${esc(s.name)}</div><div class="spot-zone">${esc(s.zone)}</div></div></div>
+      <div class="spot-desc">${esc(s.desc)}</div>
+      <div class="tags">${s.tags.map(t => `<span class="tag">${esc(t)}</span>`).join("")}
+      <a class="link-btn" style="margin:0 0 0 auto" href="${mapsSearch(s.q)}" target="_blank" rel="noopener">📍 Maps</a></div></div>`).join("")}
+    <div class="ask" id="ask-box"${sample ? "" : " hidden"}>
+      <h3>Demander une adresse à Claude</h3>
+      <p>Ex. « un bar où danser près de Covent Garden samedi soir » ou « un sunday roast près de London Bridge ».</p>
+      <label for="ask-q" class="sub" style="display:block;margin-top:0">Votre envie</label>
+      <input id="ask-q" class="field" placeholder="Un bar dansant à Soho…">
+      <button class="primary" id="ask-go">Chercher</button>
+      <div id="ask-out" style="margin-top:12px"></div>
+    </div>`;
+}
+
+// ── Événements ───────────────────────────────────────────────────────
+document.addEventListener("click", (e) => {
+  const t = e.target.closest("button, [data-toggle]");
+  if (!t) return;
+  if (t.dataset.go) { view = t.dataset.go; store.set("view", view); expanded = null; editMode = false; render(); window.scrollTo(0, 0); return; }
+  if (t.dataset.check) { e.stopPropagation(); done[t.dataset.check] = !done[t.dataset.check]; store.set("done", done); render(); return; }
+  if (t.dataset.move) { e.stopPropagation(); move(t.dataset.move, +t.dataset.dir); return; }
+  if (t.dataset.del) { e.stopPropagation(); remove(t.dataset.del); return; }
+  if (t.dataset.toggle && !editMode) { expanded = expanded === t.dataset.toggle ? null : t.dataset.toggle; render(); return; }
+  if (t.id === "edit-btn") { editMode = !editMode; expanded = null; render(); return; }
+  if (t.id === "add-btn") return openAdd();
+  if (t.id === "restore") { delete deleted[view]; delete orders[view]; store.set("deleted", deleted); store.set("orders", orders); render(); return; }
+  if (t.id === "ask-go") return askSpot();
+  if (t.dataset.payer) { expForm.payer = t.dataset.payer; saveForm(); render(); return; }
+  if (t.dataset.among) { const n = t.dataset.among; expForm.among = expForm.among.includes(n) ? expForm.among.filter(x => x !== n) : [...expForm.among, n]; saveForm(); render(); return; }
+  if (t.dataset.cur) { expForm.cur = t.dataset.cur; saveForm(); render(); return; }
+  if (t.id === "exp-add") return addExpense();
+  if (t.dataset.expdel) { delExpense(t.dataset.expdel); return; }
+  if (t.id === "exp-cancel-del") { pendingDel = null; render(); return; }
+});
+document.addEventListener("input", (e) => {
+  if (e.target.id === "exp-label") { expForm.label = e.target.value; saveForm(); }
+  if (e.target.id === "exp-amount") { expForm.amount = e.target.value; saveForm(); }
+});
+document.addEventListener("change", (e) => {
+  if (e.target.id === "exp-rate") { const r = parseFloat(String(e.target.value).replace(",", ".")); if (r > 0) setRate(r); }
+});
+
+// ── Split de dépenses ────────────────────────────────────────────────
+// Partagé entre les viewers connectés (db) quand c'est possible, sinon gardé sur l'appareil.
+let db = null;
+let expenses = store.get("expenses", []);
+let rate = store.get("rate", 1.15); // € pour 1 £, modifiable
+let expForm = store.get("expform", { label: "", amount: "", cur: "GBP", payer: "Mathieu", among: PEOPLE.map(p => p.name) });
+let pendingDel = null;
+let expStatus = "local";
+let expMsg = "";
+function saveForm() { store.set("expform", expForm); }
+const fmt = (n) => ((Math.round(n * 100) / 100) || 0).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const toEur = (x) => x.cur === "EUR" ? x.amount : x.amount * rate;
+const pColor = (n) => (PEOPLE.find(p => p.name === n) || {}).color || "#666";
+
+function balances() {
+  const b = Object.fromEntries(PEOPLE.map(p => [p.name, { paid: 0, share: 0 }]));
+  for (const x of expenses) {
+    const eur = toEur(x), who = (x.among || []).filter(n => b[n]);
+    if (!b[x.payer] || !who.length) continue;
+    b[x.payer].paid += eur;
+    who.forEach(n => b[n].share += eur / who.length);
+  }
+  return b;
+}
+function settle(b) {
+  const deb = [], cred = [];
+  for (const [n, v] of Object.entries(b)) { const net = v.paid - v.share; if (net < -0.005) deb.push([n, -net]); else if (net > 0.005) cred.push([n, net]); }
+  deb.sort((a, c) => c[1] - a[1]); cred.sort((a, c) => c[1] - a[1]);
+  const out = []; let i = 0, j = 0;
+  while (i < deb.length && j < cred.length) {
+    const m = Math.min(deb[i][1], cred[j][1]);
+    out.push({ from: deb[i][0], to: cred[j][0], amt: m });
+    deb[i][1] -= m; cred[j][1] -= m;
+    if (deb[i][1] < 0.005) i++; if (cred[j][1] < 0.005) j++;
+  }
+  return out;
+}
+
+function renderExpenses() {
+  $("#day-title").textContent = "Split de dépenses";
+  $("#day-line").hidden = true;
+  const b = balances();
+  const total = expenses.reduce((s, x) => s + toEur(x), 0);
+  const tr = settle(b);
+  const list = [...expenses].sort((a, c) => (c.ts || 0) - (a.ts || 0));
+  const syncLbl = expStatus === "shared" ? "Partagé entre vous, en direct" : expStatus === "loading" ? "Connexion…" : "Enregistré sur ce téléphone seulement";
+  $("#main").innerHTML = `
+    <div class="panel">
+      <div class="total"><div><div class="sub" style="margin:0 0 2px">Total du séjour</div><div class="big">${fmt(total)} €</div></div>
+      <div class="small">${expenses.length} dépense${expenses.length > 1 ? "s" : ""}<br>soit ${fmt(total / PEOPLE.length)} € / personne</div></div>
+      <div class="people">${PEOPLE.map(p => { const v = b[p.name], net = v.paid - v.share; return `
+        <div class="person"><div class="avatar" style="background:${p.color}">${p.name[0]}</div><div class="nm">${p.name}</div>
+        <div class="pd">a payé ${fmt(v.paid)} €</div>
+        <div class="net ${net > 0.005 ? "pos" : net < -0.005 ? "neg" : ""}">${net > 0.005 ? "+" : ""}${fmt(net)} €</div></div>`; }).join("")}</div>
+      <div style="margin-top:10px"><span class="sync${expStatus === "shared" ? " on" : ""}"><i></i>${syncLbl}</span></div>
+    </div>
+
+    <div class="panel">
+      <h3>Qui rembourse qui</h3>
+      ${tr.length ? tr.map(t => `<div class="transfer"><span class="avatar" style="width:26px;height:26px;font-size:12px;margin:0;background:${pColor(t.from)}">${t.from[0]}</span>${t.from}
+        <span style="color:var(--muted)">→</span><span class="avatar" style="width:26px;height:26px;font-size:12px;margin:0;background:${pColor(t.to)}">${t.to[0]}</span>${t.to}
+        <span class="amt">${fmt(t.amt)} €</span></div>`).join("")
+        : `<div class="empty">${expenses.length ? "Tout le monde est à l'équilibre 👌" : "Les remboursements s'afficheront ici dès la première dépense."}</div>`}
+    </div>
+
+    <div class="panel">
+      <h3>Ajouter une dépense</h3>
+      ${expMsg ? `<div class="err">${esc(expMsg)}</div>` : ""}
+      <label class="sub" for="exp-label" style="display:block;margin-top:0">Quoi</label>
+      <input id="exp-label" class="field" placeholder="Ex. Dîner Chinatown, Uber, London Eye…" value="${esc(expForm.label)}">
+      <label class="sub" for="exp-amount" style="display:block">Montant</label>
+      <div class="row2"><input id="exp-amount" class="field" inputmode="decimal" placeholder="0,00" value="${esc(expForm.amount)}">
+        <div class="chips" style="margin:0"><button class="chip" data-cur="GBP" aria-pressed="${expForm.cur === "GBP"}">£</button><button class="chip" data-cur="EUR" aria-pressed="${expForm.cur === "EUR"}">€</button></div></div>
+      <div class="sub">Payé par</div>
+      <div class="chips">${PEOPLE.map(p => `<button class="chip" data-payer="${p.name}" aria-pressed="${expForm.payer === p.name}">${p.name}</button>`).join("")}</div>
+      <div class="sub">Partagé entre</div>
+      <div class="chips">${PEOPLE.map(p => `<button class="chip" data-among="${p.name}" aria-pressed="${expForm.among.includes(p.name)}">${expForm.among.includes(p.name) ? "✓ " : ""}${p.name}</button>`).join("")}</div>
+      <button class="primary" id="exp-add">Ajouter la dépense</button>
+      <div class="rate"><label for="exp-rate">Taux : 1 £ =</label><input id="exp-rate" inputmode="decimal" value="${String(rate).replace(".", ",")}"> € <span>(à ajuster au taux de votre banque)</span></div>
+    </div>
+
+    <div class="panel">
+      <h3>Historique</h3>
+      ${list.length ? list.map(x => `<div class="exp">
+        <span class="avatar" style="width:30px;height:30px;font-size:12px;margin:0;flex-shrink:0;background:${pColor(x.payer)}">${esc(x.payer[0])}</span>
+        <div class="txt"><div class="title">${esc(x.label)}</div><div class="meta"><span class="when">${esc(x.payer)} · pour ${(x.among || []).length === PEOPLE.length ? "les 3" : esc((x.among || []).join(", "))}</span></div></div>
+        <div class="sum"><b>${fmt(x.amount)} ${x.cur === "EUR" ? "€" : "£"}</b>${x.cur === "GBP" ? `<span>${fmt(toEur(x))} €</span>` : ""}</div>
+        ${pendingDel === x.id
+          ? `<button class="mini del" data-expdel="${x.id}">Supprimer</button><button class="mini" id="exp-cancel-del">Annuler</button>`
+          : `<button class="mini del" data-expdel="${x.id}" aria-label="Supprimer ${esc(x.label)}">✕</button>`}
+      </div>`).join("") : `<div class="empty">Aucune dépense pour l'instant.<br>Ajoutez la première ci-dessus, par exemple les billets Eurostar.</div>`}
+    </div>`;
+}
+
+async function addExpense() {
+  const amount = parseFloat(String(expForm.amount).replace(/\s/g, "").replace(",", "."));
+  if (!expForm.label.trim()) { expMsg = "Indiquez ce qui a été payé."; return render(); }
+  if (!(amount > 0)) { expMsg = "Indiquez un montant supérieur à zéro."; return render(); }
+  if (!expForm.among.length) { expMsg = "Choisissez au moins une personne pour le partage."; return render(); }
+  expMsg = "";
+  const x = { id: "e" + Date.now() + Math.random().toString(36).slice(2, 6), label: expForm.label.trim(), amount, cur: expForm.cur, payer: expForm.payer, among: [...expForm.among], ts: Date.now() };
+  expForm = { ...expForm, label: "", amount: "" }; saveForm();
+  if (db) {
+    try { await db.collection("depenses").doc(x.id).set(x); }
+    catch (err) { expMsg = "La dépense n'a pas pu être enregistrée en ligne. Vérifiez la connexion et réessayez."; expForm = { ...expForm, label: x.label, amount: String(amount) }; render(); }
+  } else { expenses.push(x); store.set("expenses", expenses); render(); }
+}
+async function delExpense(id) {
+  if (pendingDel !== id) { pendingDel = id; return render(); }
+  pendingDel = null;
+  if (db) { try { await db.collection("depenses").doc(id).delete(); } catch { expMsg = "Suppression impossible pour le moment. Réessayez."; render(); } }
+  else { expenses = expenses.filter(x => x.id !== id); store.set("expenses", expenses); render(); }
+}
+async function setRate(r) {
+  rate = r; store.set("rate", r); render();
+  if (db) { try { await db.doc("reglages/taux").set({ eurParLivre: r }); } catch {} }
+}
+
+(async () => {
+  let d = null;
+  try { d = window.claude?.use ? await window.claude.use("db") : null; } catch { d = null; }
+  if (!d) { expStatus = "local"; if (view === "dep") render(); return; }
+  expStatus = "loading"; if (view === "dep") render();
+  const timer = setTimeout(() => { if (expStatus === "loading") { expStatus = "local"; if (view === "dep") render(); } }, 10000);
+  d.collection("depenses").onSnapshot((snap) => {
+    clearTimeout(timer);
+    db = d; expStatus = "shared";
+    expenses = snap.docs.map(s => ({ ...s.data(), id: s.id }));
+    if (view === "dep") render();
+  }, () => { clearTimeout(timer); db = null; expStatus = "local"; if (view === "dep") render(); });
+  d.doc("reglages/taux").onSnapshot((s) => {
+    const r = s.exists ? Number(s.data().eurParLivre) : 0;
+    if (r > 0) { rate = r; store.set("rate", r); if (view === "dep") render(); }
+  }, () => {});
+})();
+
+function move(id, dir) {
+  const ids = items(view).map(i => i.id);
+  const i = ids.indexOf(id), j = i + dir;
+  if (j < 0 || j >= ids.length) return;
+  [ids[i], ids[j]] = [ids[j], ids[i]];
+  orders[view] = ids; store.set("orders", orders); render();
+}
+function remove(id) {
+  const c = custom[view] || [];
+  if (c.some(i => i.id === id)) { custom[view] = c.filter(i => i.id !== id); store.set("custom", custom); }
+  else { deleted[view] = [...(deleted[view] || []), id]; store.set("deleted", deleted); }
+  delete done[id]; store.set("done", done); render();
+}
+
+// ── Ajout d'activité ─────────────────────────────────────────────────
+let addMode = "ai", pending = null;
+function openAdd() { addMode = sample ? "ai" : "manual"; pending = null; drawAdd(); }
+function closeAdd() { $("#sheet-root").innerHTML = ""; }
+function drawAdd(state, msg) {
+  const d = dayOf(view);
+  let body = "";
+  if (state === "loading") body = `<div class="loading"><div class="spin">🧭</div><div style="margin-top:10px;font-weight:600;color:var(--fg)">Claude prépare l'activité…</div><div>Trajets depuis le quartier de l'hôtel</div></div>`;
+  else if (state === "preview" && pending) body = `<div class="preview"><div style="display:flex;gap:10px;align-items:center"><span style="font-size:28px">${esc(pending.icon)}</span><div><div style="font-weight:800;font-size:16px">${esc(pending.title)}</div><div class="meta"><span class="when">${esc(pending.when || "")}</span><span class="price">${esc(pending.price || "")}</span></div></div></div>
+      <div class="desc">${esc(pending.desc)}</div>${(pending.routes || []).map(r => `<div class="route" style="background:var(--card);margin-top:8px"><span class="line-pill" style="background:${lineColor(r.line)};color:${(LINES[r.line] || {}).ink || "#fff"}">${esc((LINES[r.line] || LINES.walk).name)}</span><div class="route-info"><div class="route-detail">${esc(r.detail)}</div><div class="route-foot">${esc([r.time, r.price].filter(Boolean).join(" · "))}</div></div></div>`).join("")}</div>
+      <button class="primary" id="add-confirm">Ajouter au ${esc(d.label.toLowerCase())}</button><button class="secondary" id="add-back">Essayer autre chose</button>`;
+  else body = `
+    ${sample ? `<div class="seg"><button aria-pressed="${addMode === "ai"}" data-mode="ai">✨ Avec Claude</button><button aria-pressed="${addMode === "manual"}" data-mode="manual">✍️ À la main</button></div>` : ""}
+    ${msg ? `<div class="err">${esc(msg)}</div>` : ""}
+    ${addMode === "ai"
+      ? `<label class="sub" for="ai-q" style="display:block;margin-top:0">Lieu ou envie</label><input id="ai-q" class="field" placeholder="Ex. British Museum, Sky Garden, un marché…"><button class="primary" id="ai-go">Générer avec trajets</button>`
+      : `<label class="sub" for="m-title" style="display:block;margin-top:0">Titre</label><input id="m-title" class="field" placeholder="Ex. British Museum">
+         <label class="sub" for="m-desc" style="display:block">Notes</label><textarea id="m-desc" class="field" placeholder="Horaires, idées, réservation…"></textarea>
+         <label class="sub" for="m-dest" style="display:block">Adresse pour Maps (facultatif)</label><input id="m-dest" class="field" placeholder="Ex. British Museum, London">
+         <button class="primary" id="m-go">Ajouter</button>`}
+    <button class="secondary" id="add-close">Fermer</button>`;
+  $("#sheet-root").innerHTML = `<div class="overlay" id="ov"><div class="sheet" role="dialog" aria-label="Ajouter une activité"><div class="handle"></div><h3>Ajouter au ${esc(d.label.toLowerCase())}</h3><p class="hint">${esc(d.title)}</p>${body}</div></div>`;
+  $("#ov").addEventListener("click", (e) => {
+    if (e.target.id === "ov" || e.target.id === "add-close") return closeAdd();
+    const b = e.target.closest("button"); if (!b) return;
+    if (b.dataset.mode) { addMode = b.dataset.mode; drawAdd(); }
+    if (b.id === "ai-go") generate();
+    if (b.id === "m-go") manualAdd();
+    if (b.id === "add-confirm") confirmAdd();
+    if (b.id === "add-back") { pending = null; drawAdd(); }
+  });
+  const f = $("#ai-q") || $("#m-title"); if (f) f.focus();
+}
+function manualAdd() {
+  const title = $("#m-title").value.trim();
+  if (!title) return drawAdd(null, "Donnez au moins un titre à l'activité.");
+  pending = { icon: "📍", title, desc: $("#m-desc").value.trim(), dest: $("#m-dest").value.trim() || null, routes: [] };
+  confirmAdd();
+}
+function confirmAdd() {
+  const it = { ...pending, id: "c" + Date.now(), custom: true };
+  custom[view] = [...(custom[view] || []), it]; store.set("custom", custom);
+  closeAdd(); expanded = it.id; render();
+}
+
+const CONTEXT = `Contexte : week-end à Londres du vendredi 6 au dimanche 8 novembre 2026, quatre adultes de la même famille (un père et ses trois enfants adultes), arrivée et départ en Eurostar à St Pancras. Hébergement : Covent & Soho Stays, quartier Covent Garden / Soho (stations proches : Covent Garden, Leicester Square, Tottenham Court Road). Dimanche 8 novembre est le Remembrance Sunday (Whitehall fermé le matin). Paiement du métro en sans contact, plafond 8,90 £/jour en zones 1–2.`;
+const LINE_KEYS = Object.keys(LINES).join(", ");
+
+async function generate() {
+  const q = $("#ai-q").value.trim();
+  if (!q) return drawAdd(null, "Écrivez un lieu ou une envie.");
+  const d = dayOf(view);
+  drawAdd("loading");
+  try {
+    const r = await sample.json(`${CONTEXT}
+Journée : ${d.label} — ${d.title}. Programme déjà prévu : ${items(view).map(i => i.title).join(" ; ")}.
+Demande : « ${q} ».
+Crée UNE activité pour ce jour, en français, réaliste et à jour. Réponds uniquement en JSON :
+{"icon":"un emoji","title":"court, 40 caractères max","when":"moment conseillé, ex. 15 h ou Fin d'après-midi","price":"prix indicatif ou Gratuit","desc":"2 à 3 phrases utiles (horaires, réservation, à ne pas manquer)","dest":"requête Google Maps précise, ex. British Museum, London","routes":[{"line":"une clé parmi ${LINE_KEYS}","detail":"trajet depuis le quartier de l'hôtel, stations et direction","time":"~15 min","price":"Tarif métro ou Gratuit"}]}
+Donne 1 à 2 trajets. Si un prix ou un horaire est incertain, dis-le dans desc.`, { modelTier: "default" });
+    if (!r || !r.title) throw new Error("vide");
+    pending = r; drawAdd("preview");
+  } catch (err) {
+    if (err && err.code === "not_granted") { sample = null; addMode = "manual"; return drawAdd(null, "L'accès à Claude n'est pas autorisé sur cette page. Ajoutez l'activité à la main."); }
+    if (err && err.code === "rate_limited") return drawAdd(null, "Trop de demandes pour le moment. Réessayez dans une minute, ou ajoutez l'activité à la main.");
+    drawAdd(null, "Claude n'a pas pu générer l'activité. Reformulez la demande ou ajoutez-la à la main.");
+  }
+}
+
+async function askSpot() {
+  const q = $("#ask-q").value.trim(); const out = $("#ask-out"); const btn = $("#ask-go");
+  if (!q) { out.innerHTML = `<div class="err">Écrivez ce que vous cherchez.</div>`; return; }
+  btn.disabled = true; out.innerHTML = `<div class="loading"><div class="spin">🧭</div></div>`;
+  try {
+    const r = await sample.json(`${CONTEXT}
+Demande : « ${q} ». Propose 3 adresses réelles à Londres, si possible proches de l'hôtel ou du parcours. Signale si un lieu risque d'être fermé ou de nécessiter une réservation. Réponds uniquement en JSON : {"results":[{"name":"","zone":"quartier · station","desc":"1 à 2 phrases","maps":"requête Google Maps précise"}]}`, { modelTier: "default" });
+    out.innerHTML = (r.results || []).map(s => `<div class="route" style="flex-direction:column;gap:4px"><div style="font-weight:700">${esc(s.name)}</div><div class="route-foot" style="margin:0">${esc(s.zone)}</div><div class="route-detail">${esc(s.desc)}</div><a class="link-btn" style="align-self:flex-start;margin-top:4px" href="${mapsSearch(s.maps || s.name + ", London")}" target="_blank" rel="noopener">📍 Maps</a></div>`).join("") || `<div class="err">Aucune adresse trouvée. Reformulez la demande.</div>`;
+  } catch (err) {
+    out.innerHTML = `<div class="err">${err && err.code === "rate_limited" ? "Trop de demandes pour le moment, réessayez dans une minute." : "Claude n'a pas pu répondre. Reformulez la demande."}</div>`;
+    if (err && err.code === "not_granted") { sample = null; $("#ask-box").hidden = true; }
+  } finally { btn.disabled = false; }
+}
+
+// ── Conseils qui défilent ─────────────────────────────────────────────
+function showTip() { $("#tip").textContent = TIPS[tipIdx % TIPS.length]; tipIdx++; }
+showTip(); setInterval(showTip, 6000);
+
+if (!dayOf(view) && view !== "adr" && view !== "dep") view = "ven";
+render();
+
+// Claude (ajout IA) : s'active si la page y a accès
+(async () => {
+  try { sample = window.claude?.use ? await window.claude.use("sample") : null; } catch { sample = null; }
+  if (sample) { const box = $("#ask-box"); if (box) box.hidden = false; }
+})();
+</script>
+
+</body>
+</html>
